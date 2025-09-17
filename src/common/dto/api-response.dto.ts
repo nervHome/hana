@@ -1,118 +1,118 @@
+import { Type } from 'class-transformer'
 import {
   IsBoolean,
+  IsNumber,
   IsOptional,
   IsString,
-  IsNumber,
   ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+} from 'class-validator'
 
 export class ApiResponseMeta {
   @IsNumber()
-  timestamp: number;
+  timestamp: number
 
   @IsString()
-  requestId: string;
+  requestId: string
 
   @IsNumber()
-  duration: number;
+  duration: number
 
   @IsString()
-  version: string;
+  version: string
 }
 
 export class PaginationMeta {
   @IsNumber()
-  page: number;
+  page: number
 
   @IsNumber()
-  limit: number;
+  limit: number
 
   @IsNumber()
-  total: number;
+  total: number
 
   @IsNumber()
-  totalPages: number;
+  totalPages: number
 
   @IsBoolean()
-  hasNext: boolean;
+  hasNext: boolean
 
   @IsBoolean()
-  hasPrev: boolean;
+  hasPrev: boolean
 }
 
 export class ApiResponse<T = unknown> {
   @IsBoolean()
-  success: boolean;
+  success: boolean
 
-  data: T;
-
-  @IsOptional()
-  @IsString()
-  message?: string;
+  data: T
 
   @IsOptional()
   @IsString()
-  errorCode?: string;
+  message?: string
+
+  @IsOptional()
+  @IsString()
+  errorCode?: string
 
   @IsOptional()
   @ValidateNested()
   @Type(() => PaginationMeta)
-  pagination?: PaginationMeta;
+  pagination?: PaginationMeta
 
   @ValidateNested()
   @Type(() => ApiResponseMeta)
-  meta: ApiResponseMeta;
+  meta: ApiResponseMeta
 }
 
 export class PaginatedResponse<T = unknown> {
   @IsBoolean()
-  success: boolean;
+  success: boolean
 
-  data: T[];
-
-  @IsOptional()
-  @IsString()
-  message?: string;
+  data: T[]
 
   @IsOptional()
   @IsString()
-  errorCode?: string;
+  message?: string
+
+  @IsOptional()
+  @IsString()
+  errorCode?: string
 
   @ValidateNested()
   @Type(() => PaginationMeta)
-  pagination: PaginationMeta;
+  pagination: PaginationMeta
 
   @ValidateNested()
   @Type(() => ApiResponseMeta)
-  meta: ApiResponseMeta;
+  meta: ApiResponseMeta
 }
 
 export class ErrorResponse {
   @IsBoolean()
-  success: boolean = false;
+  success: boolean = false
 
-  data: null = null;
-
-  @IsOptional()
-  @IsString()
-  message?: string;
+  data: null = null
 
   @IsOptional()
   @IsString()
-  errorCode?: string;
+  message?: string
+
+  @IsOptional()
+  @IsString()
+  errorCode?: string
 
   @ValidateNested()
   @Type(() => ApiResponseMeta)
-  meta: ApiResponseMeta;
+  meta: ApiResponseMeta
 
   errors?: Array<{
-    field?: string;
-    message: string;
-    code?: string;
-  }>;
+    field?: string
+    message: string
+    code?: string
+  }>
 
   @IsOptional()
   @IsString()
-  stack?: string;
+  stack?: string
 }

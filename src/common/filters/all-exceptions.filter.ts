@@ -1,49 +1,49 @@
 import {
-  ExceptionFilter,
+  type ArgumentsHost,
+  BadRequestException,
   Catch,
-  ArgumentsHost,
+  type ExceptionFilter,
   HttpException,
   HttpStatus,
-  BadRequestException,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
-import { Logger } from 'nestjs-pino';
-import { ResponseHelper } from '../helpers/response.helper';
+} from '@nestjs/common'
+import type { Request, Response } from 'express'
+import type { Logger } from 'nestjs-pino'
+import * as ResponseHelper from '../helpers/response.helper'
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   constructor(private readonly logger: Logger) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
+    const ctx = host.switchToHttp()
+    const response = ctx.getResponse<Response>()
+    const request = ctx.getRequest<Request>()
 
     const status =
       exception instanceof HttpException
         ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+        : HttpStatus.INTERNAL_SERVER_ERROR
 
-    let message: string;
+    let message: string
     let errors:
       | Array<{ field?: string; message: string; code?: string }>
-      | undefined;
-    let errorCode: string | undefined;
+      | undefined
+    let errorCode: string | undefined
 
     if (exception instanceof HttpException) {
-      const exceptionResponse = exception.getResponse();
+      const exceptionResponse = exception.getResponse()
 
       if (typeof exceptionResponse === 'string') {
-        message = exceptionResponse;
+        message = exceptionResponse
       } else if (
         typeof exceptionResponse === 'object' &&
         exceptionResponse !== null
       ) {
-        const responseObj = exceptionResponse as Record<string, unknown>;
+        const responseObj = exceptionResponse as Record<string, unknown>
         message =
           (responseObj.message as string) ||
           (responseObj.error as string) ||
-          'Bad Request';
+          'Bad Request'
 
         // 处理验证错误
         if (
@@ -53,18 +53,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
           errors = (responseObj.message as string[]).map((msg: string) => ({
             message: msg,
             code: 'VALIDATION_ERROR',
-          }));
-          errorCode = 'VALIDATION_ERROR';
+          }))
+          errorCode = 'VALIDATION_ERROR'
         }
       } else {
-        message = 'HTTP Exception';
+        message = 'HTTP Exception'
       }
     } else if (exception instanceof Error) {
-      message = exception.message;
-      errorCode = 'INTERNAL_ERROR';
+      message = exception.message
+      errorCode = 'INTERNAL_ERROR'
     } else {
-      message = 'Unknown error occurred';
-      errorCode = 'UNKNOWN_ERROR';
+      message = 'Unknown error occurred'
+      errorCode = 'UNKNOWN_ERROR'
     }
 
     // 记录错误日志
@@ -79,7 +79,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         requestId: request.headers['x-request-id'],
       },
       'GlobalExceptionFilter',
-    );
+    )
 
     const errorResponse = ResponseHelper.error(
       message,
@@ -89,8 +89,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       {
         requestId: (request.headers['x-request-id'] as string) || undefined,
       },
-    );
+    )
 
-    response.status(status).json(errorResponse);
+    response.status(status).json(errorResponse)
   }
 }
