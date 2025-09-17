@@ -39,11 +39,9 @@ async function bootstrap(): Promise<void> {
 
   const port = process.env.PORT ?? 4000
   const logger = new Logger('Bootstrap')
-  app.setGlobalPrefix('api/v1')
-
   await app.listen(port)
 
-  logger.log(`🚀 Application is running on: http://localhost:${port}/api/v1`)
+  logger.log(`🚀 Application is running on: http://localhost:${port}`)
   logger.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`)
 }
 

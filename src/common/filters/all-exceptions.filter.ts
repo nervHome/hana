@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
 import type { Logger } from 'nestjs-pino'
+import { BusinessException } from '../exceptions'
 import * as ResponseHelper from '../helpers/response.helper'
 
 @Catch()
@@ -45,8 +46,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
           (responseObj.error as string) ||
           'Bad Request'
 
+        // 处理 BusinessException
+        if (exception instanceof BusinessException) {
+          errorCode = responseObj.errorCode as string
+          if (responseObj.details) {
+            errors = [
+              {
+                message,
+                code: errorCode,
+                field: undefined,
+              },
+            ]
+          }
+        }
         // 处理验证错误
-        if (
+        else if (
           exception instanceof BadRequestException &&
           Array.isArray(responseObj.message)
         ) {

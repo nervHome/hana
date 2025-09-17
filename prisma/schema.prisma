@@ -15,12 +15,14 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  password  String
-  role      UserRole @default(EDITOR)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password_hash String   @map("password_hash")
+  role          UserRole @default(EDITOR)
+  hash_algo     String   @default("argon2id") // 方便迁移
+  hash_meta     Json? // 可选：存储 timeCost/memoryCost/parallelism 等
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 }
 
 enum UserRole {

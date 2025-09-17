@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { createId } from '@paralleldrive/cuid2'
 import type {
   ApiResponse,
   ApiResponseMeta,
@@ -15,7 +15,7 @@ export function createMeta(
 ): ApiResponseMeta {
   return {
     timestamp: Date.now(),
-    requestId: requestId || randomUUID(),
+    requestId: requestId || createId(),
     duration: Date.now() - startTime,
     version: API_VERSION,
   }

@@ -15,9 +15,9 @@
     "expand": "auto",
     "useEditorconfig": true
   },
-  "linter": { 
-    "enabled": true, 
-    "rules": { 
+  "linter": {
+    "enabled": true,
+    "rules": {
       "recommended": true,
       "style": {
         "useImportType": "off"

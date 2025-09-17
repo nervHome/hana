@@ -1,3 +1,4 @@
+import { BusinessException } from '@/common'
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { UsersService } from '../users/users.service'
@@ -9,16 +10,24 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findUserByUsername(username)
-    if (user && user.password === pass) {
-      const { password, ...result } = user
-      return result
+  async login(user: { email: string; password: string }) {
+    const userResult = await this.usersService.validateUser(
+      user.email,
+      user.password,
+    )
+    if (!userResult) {
+      throw BusinessException.businessRuleViolation(
+        'user or password is invalid',
+      )
     }
-    return null
-  }
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.userId }
+    const payload = {
+      username: userResult.email,
+      sub: {
+        id: userResult.id,
+        role: userResult.role,
+      },
+    }
+
     return {
       access_token: this.jwtService.sign(payload),
     }
