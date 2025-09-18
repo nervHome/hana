@@ -69,4 +69,9 @@ export class UserDao {
       },
     })
   }
+  getUserById(userId: string) {
+    return this.prismaService.user.findUnique({
+      where: { id: userId },
+    })
+  }
 }

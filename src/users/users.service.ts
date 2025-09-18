@@ -51,4 +51,9 @@ export class UsersService {
     this.logger.log(`delete users: ${ids}`, UsersService.name)
     return this.userDAO.deleteBatch(ids)
   }
+
+  currentUser(userId: string) {
+    this.logger.log(`current user id: ${userId}`, UsersService.name)
+    return this.userDAO.getUserById(userId)
+  }
 }
