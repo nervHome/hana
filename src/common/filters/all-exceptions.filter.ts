@@ -8,8 +8,11 @@ import {
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
 import type { Logger } from 'nestjs-pino'
-import { BusinessException } from '../exceptions'
-import * as ResponseHelper from '../helpers/response.helper'
+import {
+  BusinessException,
+  ErrorShowType,
+  type ResponseStructure,
+} from '../exceptions'
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -26,10 +29,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
         : HttpStatus.INTERNAL_SERVER_ERROR
 
     let message: string
-    let errors:
-      | Array<{ field?: string; message: string; code?: string }>
-      | undefined
-    let errorCode: string | undefined
+    let errorCode: number | undefined
+    let showType: ErrorShowType = ErrorShowType.ERROR_MESSAGE
 
     if (exception instanceof HttpException) {
       const exceptionResponse = exception.getResponse()
@@ -48,37 +49,89 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
         // 处理 BusinessException
         if (exception instanceof BusinessException) {
-          errorCode = responseObj.errorCode as string
-          if (responseObj.details) {
-            errors = [
-              {
-                message,
-                code: errorCode,
-                field: undefined,
-              },
-            ]
+          errorCode = responseObj.errorCode as number
+          showType =
+            (responseObj.showType as ErrorShowType) ||
+            ErrorShowType.ERROR_MESSAGE
+
+          // 直接返回 BusinessException 的响应格式
+          const businessResponse: ResponseStructure = {
+            success: false,
+            data: null,
+            errorCode,
+            message,
+            showType,
           }
+
+          // 记录错误日志
+          this.logger.error(
+            {
+              statusCode: status,
+              timestamp: new Date().toISOString(),
+              path: request.url,
+              method: request.method,
+              message,
+              errorCode,
+              showType,
+              stack: exception.stack,
+              requestId: request.headers['x-request-id'],
+            },
+            'BusinessExceptionFilter',
+          )
+
+          response.status(status).json(businessResponse)
+          return
         }
         // 处理验证错误
         else if (
           exception instanceof BadRequestException &&
           Array.isArray(responseObj.message)
         ) {
-          errors = (responseObj.message as string[]).map((msg: string) => ({
-            message: msg,
-            code: 'VALIDATION_ERROR',
-          }))
-          errorCode = 'VALIDATION_ERROR'
+          // 将验证错误转换为统一格式
+          const validationResponse: ResponseStructure = {
+            success: false,
+            data: null,
+            errorCode: 40001, // 使用参数验证错误码
+            message: '参数验证失败',
+            showType: ErrorShowType.ERROR_MESSAGE,
+          }
+
+          // 记录错误日志
+          this.logger.error(
+            {
+              statusCode: status,
+              timestamp: new Date().toISOString(),
+              path: request.url,
+              method: request.method,
+              message: validationResponse.message,
+              errorCode: validationResponse.errorCode,
+              validationErrors: responseObj.message,
+              requestId: request.headers['x-request-id'],
+            },
+            'ValidationExceptionFilter',
+          )
+
+          response.status(status).json(validationResponse)
+          return
         }
       } else {
         message = 'HTTP Exception'
       }
     } else if (exception instanceof Error) {
       message = exception.message
-      errorCode = 'INTERNAL_ERROR'
+      errorCode = 50000 // 内部服务器错误
     } else {
       message = 'Unknown error occurred'
-      errorCode = 'UNKNOWN_ERROR'
+      errorCode = 50001 // 未知错误
+    }
+
+    // 处理其他异常 - 转换为统一格式
+    const generalResponse: ResponseStructure = {
+      success: false,
+      data: null,
+      errorCode: errorCode || 50000,
+      message,
+      showType: ErrorShowType.ERROR_MESSAGE,
     }
 
     // 记录错误日志
@@ -89,22 +142,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
         path: request.url,
         method: request.method,
         message,
+        errorCode: generalResponse.errorCode,
         stack: exception instanceof Error ? exception.stack : undefined,
         requestId: request.headers['x-request-id'],
       },
       'GlobalExceptionFilter',
     )
 
-    const errorResponse = ResponseHelper.error(
-      message,
-      errorCode,
-      errors,
-      exception instanceof Error ? exception.stack : undefined,
-      {
-        requestId: (request.headers['x-request-id'] as string) || undefined,
-      },
-    )
-
-    response.status(status).json(errorResponse)
+    response.status(status).json(generalResponse)
   }
 }

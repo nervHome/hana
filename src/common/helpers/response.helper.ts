@@ -6,6 +6,7 @@ import type {
   PaginatedResponse,
   PaginationMeta,
 } from '../dto/api-response.dto'
+import { ErrorShowType, type ResponseStructure } from '../exceptions'
 
 const API_VERSION = '1.0.0'
 
@@ -80,5 +81,36 @@ export function createPaginationMeta(
     totalPages,
     hasNext: page < totalPages,
     hasPrev: page > 1,
+  }
+}
+
+/**
+ * 创建新格式的成功响应
+ */
+export function createSuccessResponse<T>(
+  data: T,
+  message?: string,
+): ResponseStructure {
+  return {
+    success: true,
+    data,
+    message,
+  }
+}
+
+/**
+ * 创建新格式的错误响应
+ */
+export function createErrorResponse(
+  message: string,
+  errorCode: number,
+  showType: ErrorShowType = ErrorShowType.ERROR_MESSAGE,
+): ResponseStructure {
+  return {
+    success: false,
+    data: null,
+    errorCode,
+    message,
+    showType,
   }
 }
