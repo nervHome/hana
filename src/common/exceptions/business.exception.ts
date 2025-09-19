@@ -47,7 +47,7 @@ export enum BusinessErrorCode {
 
 /**
  * 业务逻辑异常
- * 用于处理业务层面的错误，状态码为 400 Bad Request
+ * 用于处理业务层面的错误，HTTP状态码为 200 OK，错误信息在响应体中标识
  */
 export class BusinessException extends HttpException {
   public readonly errorCode: number
@@ -68,7 +68,8 @@ export class BusinessException extends HttpException {
       showType,
     }
 
-    super(response, HttpStatus.BAD_REQUEST)
+    // 业务错误使用 HTTP 200 状态码，错误信息在响应体中
+    super(response, HttpStatus.OK)
     this.errorCode = errorCode
     this.showType = showType
     this.details = details

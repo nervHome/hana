@@ -3,8 +3,11 @@ import { NestFactory } from '@nestjs/core'
 import { Logger as PinoLogger } from 'nestjs-pino'
 
 import { AppModule } from './app.module'
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
-import { ResponseInterceptor } from './common/interceptors/response.interceptor'
+import {
+  AllExceptionsFilter,
+  HttpRequestInterceptor,
+  HttpResponseInterceptor,
+} from './common'
 import { PrismaService } from './common/prisma.service'
 
 async function bootstrap(): Promise<void> {
@@ -24,8 +27,11 @@ async function bootstrap(): Promise<void> {
   // 全局异常过滤器
   app.useGlobalFilters(new AllExceptionsFilter(pinoLogger))
 
-  // 全局响应拦截器
-  app.useGlobalInterceptors(new ResponseInterceptor(pinoLogger))
+  // 全局拦截器 - 按顺序执行
+  app.useGlobalInterceptors(
+    new HttpRequestInterceptor(pinoLogger),
+    new HttpResponseInterceptor(pinoLogger),
+  )
 
   // 全局验证管道
   app.useGlobalPipes(

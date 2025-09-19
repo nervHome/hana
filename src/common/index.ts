@@ -13,5 +13,5 @@ export { AllExceptionsFilter } from './filters/all-exceptions.filter'
 export * as ResponseHelper from './helpers/response.helper'
 
 // 导出拦截器
-export { ResponseInterceptor } from './interceptors/response.interceptor'
+export * from './interceptors'
 export { PrismaService } from './prisma.service'

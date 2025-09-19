@@ -4,9 +4,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
+import { Logger } from 'nestjs-pino'
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
+  constructor(private readonly logger: Logger) {
+    super()
+  }
   canActivate(context: ExecutionContext) {
     // Add your custom authentication logic here
     // for example, call super.logIn(request) to establish a session.

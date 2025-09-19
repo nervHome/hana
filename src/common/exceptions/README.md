@@ -1,11 +1,62 @@
 # BusinessException 使用指南 (更新版)
 
-## 概述
+#### 使用方式对比
 
-`BusinessException` 是一个专门用于处理业务逻辑错误的自定义异常类，它继承自 NestJS 的 `HttpException`，并固定返回 HTTP 状态码 400 (Bad Request)。
+### 之前 (HTTP 400)
+
+```http
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+{
+  "success": false,
+  "data": null,
+  "errorCode": 40001,
+  "message": "参数验证失败",
+  "showType": 2
+}
+```
+
+### 现在 (HTTP 200)
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "success": false,
+  "data": null,
+  "errorCode": 40001,
+  "message": "参数验证失败",
+  "showType": 2
+}
+```
+
+## 为什么使用 HTTP 200？
+
+1. **业务逻辑vs技术错误分离**
+   - HTTP 200: 请求成功处理，业务结果在响应体中
+   - HTTP 4xx/5xx: 技术层面的错误（网络、服务器等）
+
+2. **前端处理简化**
+   - 前端不需要处理HTTP状态码
+   - 统一通过 `response.success` 判断业务成功失败
+
+3. **API网关友好**
+   - 避免网关误判业务错误为技术错误
+   - 减少不必要的重试和降级essException`是一个专门用于处理业务逻辑错误的自定义异常类，它继承自 NestJS 的`HttpException`，但**固定返回 HTTP 状态码 200 (OK)**，错误信息在响应体中通过 `success: false` 标识。
+
+## 重要变更 (v2.1)
+
+⚠️ **HTTP状态码变更**:
+
+- 业务错误现在返回 **HTTP 200 OK** 而不是 400 Bad Request
+- 错误信息通过响应体中的 `success: false` 和 `errorCode` 来标识
+- 这种设计更适合前后端分离的场景，让前端统一处理业务逻辑错误
 
 ## 新特性 (v2.0)
 
+- ✅ **HTTP 200 状态码** - 所有业务错误都返回200，错误信息在响应体中
 - ✅ 支持 `ErrorShowType` 枚举，控制前端错误显示方式
 - ✅ 使用数字错误码替代字符串错误码
 - ✅ 统一的 `ResponseStructure` 响应格式

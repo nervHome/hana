@@ -66,7 +66,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
           // 记录错误日志
           this.logger.error(
             {
-              statusCode: status,
+              statusCode: 200, // BusinessException 总是返回 HTTP 200
               timestamp: new Date().toISOString(),
               path: request.url,
               method: request.method,
@@ -79,7 +79,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
             'BusinessExceptionFilter',
           )
 
-          response.status(status).json(businessResponse)
+          // BusinessException 使用 HTTP 200 状态码
+          response.status(200).json(businessResponse)
           return
         }
         // 处理验证错误

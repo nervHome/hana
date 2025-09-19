@@ -1,6 +1,6 @@
-import { BusinessException } from '@/common'
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
+import { BusinessException } from '@/common'
 import { UsersService } from '../users/users.service'
 
 @Injectable()
@@ -17,7 +17,7 @@ export class AuthService {
     )
     if (!userResult) {
       throw BusinessException.businessRuleViolation(
-        'user or password is invalid',
+        '用户名或者密码错误, 请重新输入',
       )
     }
     const payload = {

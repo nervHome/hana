@@ -1,11 +1,28 @@
 import { Injectable } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
+import { Logger } from 'nestjs-pino'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { jwtConstants } from '../auth.const'
 
+interface JwtPayload {
+  sub: {
+    id: string
+    role: string
+  }
+  username: string
+  iat?: number
+  exp?: number
+}
+
+interface UserPayload {
+  userId: string
+  username: string
+  role: string
+}
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(private readonly logger: Logger) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -13,8 +30,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     })
   }
 
-  async validate(payload: any) {
+  async validate(payload: JwtPayload): Promise<UserPayload> {
     const { id, role } = payload.sub
+    this.logger.log(
+      `JWT Validate - userId: ${id}, username: ${payload.username}, role: ${role}`,
+    )
     return { userId: id, username: payload.username, role }
   }
 }
