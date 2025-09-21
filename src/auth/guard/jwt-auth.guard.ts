@@ -1,27 +1,61 @@
 import {
   type ExecutionContext,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { Logger } from 'nestjs-pino'
+import type { Request } from 'express'
+import { JwtBlacklistService } from '../services/jwt-blacklist.service'
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private readonly logger: Logger) {
+  private readonly logger = new Logger(JwtAuthGuard.name)
+
+  constructor(private readonly jwtBlacklistService: JwtBlacklistService) {
     super()
   }
+
   canActivate(context: ExecutionContext) {
-    // Add your custom authentication logic here
-    // for example, call super.logIn(request) to establish a session.
     return super.canActivate(context)
   }
 
-  handleRequest(err, user, info) {
-    // You can throw an exception based on either "info" or "err" arguments
+  handleRequest<TUser = unknown>(
+    err: unknown,
+    user: TUser,
+    info: unknown,
+    context: ExecutionContext,
+  ): TUser {
+    const request = context.switchToHttp().getRequest<Request>()
+    const token = this.extractTokenFromHeader(request)
+
+    this.logger.log(
+      `JWT Auth Guard - user: ${JSON.stringify(user)}, info: ${info}`,
+    )
+
+    // 检查令牌是否在黑名单中
+    if (token && this.jwtBlacklistService.isBlacklisted(token)) {
+      this.logger.warn(
+        { token: token.substring(0, 20) + '...' },
+        'Rejected blacklisted token',
+      )
+      throw new UnauthorizedException('Token has been revoked')
+    }
+
     if (err || !user) {
       throw err || new UnauthorizedException()
     }
     return user
+  }
+
+  /**
+   * 从请求头中提取JWT令牌
+   */
+  private extractTokenFromHeader(request: Request): string | undefined {
+    const authorization = request.headers.authorization
+    if (authorization?.startsWith('Bearer ')) {
+      return authorization.substring(7)
+    }
+    return undefined
   }
 }

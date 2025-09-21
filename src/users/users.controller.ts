@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common'
 import { JwtAuthGuard } from './../auth/guard/jwt-auth.guard'
 import { DeleteUserDto, RegisterUserDto } from './user.dto'
 import { UsersService } from './users.service'
@@ -24,8 +32,7 @@ export class UsersController {
 
   @Get('currentUser')
   @UseGuards(JwtAuthGuard)
-  currentInfo() {
-    const userId = ''
-    return this.usersService.currentUser(userId)
+  currentInfo(@Req() req: { user: { userId: string } }) {
+    return this.usersService.currentUser(req.user.userId)
   }
 }
