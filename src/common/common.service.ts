@@ -9,7 +9,6 @@ import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { XMLParser } from 'fast-xml-parser'
 import { ensureDirSync } from 'fs-extra'
-import got from 'got'
 import { Logger } from 'nestjs-pino'
 import type { EPG_XML } from '@/type/epg'
 
@@ -44,6 +43,9 @@ export class CommonService {
     )
     const filePath = dirname(destination)
     const fileName = basename(destination)
+
+    // 动态导入 got
+    const { default: got } = await import('got')
 
     // 尝试多种不同的 User-Agent 和头部配置
     const userAgents = [
