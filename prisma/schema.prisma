@@ -29,3 +29,62 @@ enum UserRole {
   ADMIN
   EDITOR
 }
+
+model Channel {
+  id        String @id @default(cuid()) // 主键
+  channelId String @map("channel_id") // 外部系统的频道 ID
+  epgId     String @map("epg_id") // 所属 EPG 的 ID（外键）
+
+  name      String   @map("name") // 频道名称
+  logoUrl   String?  @map("logo_url") // 频道 LOGO
+  language  String?  @map("language") // 语言（如 zh, en）
+  country   String?  @map("country") // 国家/地区
+  isActive  Boolean  @default(true) @map("is_active") // 是否启用
+  remark    String? // 备注
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // 节目单（Programme）关系
+  programmes    Programme[]
+  ChannelSource ChannelSource[]
+
+  // 唯一约束：同一个 EPG 下，channelId 不重复
+  @@unique([channelId, epgId])
+  // 为常用查询建立索引
+  @@index([epgId])
+}
+
+model ChannelSource {
+  id        String @id @default(cuid())
+  channelId String @map("channel_id")
+  epgId     String @map("epg_id")
+
+  name      String // 直播源名称，如“高清”、“标清”、“备用CDN”
+  url       String // 播放地址
+  isActive  Boolean  @default(true) @map("is_active") // 是否启用
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  channel Channel @relation(fields: [channelId, epgId], references: [channelId, epgId])
+
+  @@index([channelId, epgId])
+}
+
+model Programme {
+  id        String @id @default(cuid())
+  channelId String @map("channel_id")
+  epgId     String @map("epg_id")
+
+  title     String
+  startTime DateTime @map("start_time")
+  endTime   DateTime @map("end_time")
+  duration  Int? // 自动计算的时长（分钟）
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  channel Channel @relation(fields: [channelId, epgId], references: [channelId, epgId])
+
+  @@unique([channelId, epgId, startTime]) // 避免重复节目
+  @@index([channelId, epgId])
+}
