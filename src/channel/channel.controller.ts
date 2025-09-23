@@ -18,7 +18,7 @@ import {
 } from './channel.dto'
 import { ChannelService } from './channel.service'
 
-@Controller('channels')
+@Controller('channel')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class ChannelController {
   constructor(private readonly channelService: ChannelService) {}
