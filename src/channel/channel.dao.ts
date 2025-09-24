@@ -1,6 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common'
 import { Prisma } from 'generated/prisma'
 import { PrismaService } from '@/common'
+import { PaginationHelper } from '@/common/dto/pagination.dto'
 import {
   CreateChannelDTO,
   QueryChannelsDTO,
@@ -78,15 +79,15 @@ export class ChannelDAO {
 
   // 分页查询频道
   async findChannelsWithPagination(query: QueryChannelsDTO) {
-    const { page = 1, limit = 10, search, epgId, isActive } = query
-    const skip = (page - 1) * limit
+    const { current = 1, pageSize = 10, keyword, epgId, isActive } = query
+    const skip = (current - 1) * pageSize
 
     const where: Prisma.ChannelWhereInput = {}
 
-    if (search) {
+    if (keyword) {
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { channelId: { contains: search, mode: 'insensitive' } },
+        { name: { contains: keyword, mode: 'insensitive' } },
+        { channelId: { contains: keyword, mode: 'insensitive' } },
       ]
     }
 
@@ -102,7 +103,7 @@ export class ChannelDAO {
       this.prismaService.channel.findMany({
         where,
         skip,
-        take: limit,
+        take: pageSize,
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
@@ -120,15 +121,12 @@ export class ChannelDAO {
       this.prismaService.channel.count({ where }),
     ])
 
-    return {
-      data: channels,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    }
+    return PaginationHelper.buildPaginationResult(
+      channels,
+      total,
+      current,
+      pageSize,
+    )
   }
 
   // 根据ID查找频道

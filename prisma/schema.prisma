@@ -30,6 +30,26 @@ enum UserRole {
   EDITOR
 }
 
+model Epg {
+  id       String  @id @default(cuid()) // 主键
+  epgId    String  @unique @map("epg_id") // EPG 唯一标识
+  name     String // EPG 名称
+  xmlUrl   String? @map("xml_url") // EPG XML 文件地址
+  language String? // 语言代码，如 "zh", "en"
+  isActive Boolean @default(true) @map("is_active") // 是否启用
+  remark   String? // 备注信息
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // 关联关系
+  channels       Channel[]
+  channelSources ChannelSource[]
+  programmes     Programme[]
+
+  @@map("epg")
+}
+
 model Channel {
   id        String @id @default(cuid()) // 主键
   channelId String @map("channel_id") // 外部系统的频道 ID
@@ -44,7 +64,8 @@ model Channel {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  // 节目单（Programme）关系
+  // 关联关系
+  epg           Epg             @relation(fields: [epgId], references: [epgId])
   programmes    Programme[]
   ChannelSource ChannelSource[]
 
@@ -52,6 +73,7 @@ model Channel {
   @@unique([channelId, epgId])
   // 为常用查询建立索引
   @@index([epgId])
+  @@map("channel")
 }
 
 model ChannelSource {
@@ -65,9 +87,11 @@ model ChannelSource {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  epg     Epg     @relation(fields: [epgId], references: [epgId])
   channel Channel @relation(fields: [channelId, epgId], references: [channelId, epgId])
 
   @@index([channelId, epgId])
+  @@map("channel_source")
 }
 
 model Programme {
@@ -83,8 +107,10 @@ model Programme {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  epg     Epg     @relation(fields: [epgId], references: [epgId])
   channel Channel @relation(fields: [channelId, epgId], references: [channelId, epgId])
 
   @@unique([channelId, epgId, startTime]) // 避免重复节目
   @@index([channelId, epgId])
+  @@map("programme")
 }

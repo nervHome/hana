@@ -1,5 +1,6 @@
-import { Transform, Type } from 'class-transformer'
+import { Transform } from 'class-transformer'
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { StandardPageDTO } from '@/common/dto/pagination.dto'
 
 export class CreateChannelDTO {
   @IsString()
@@ -59,21 +60,7 @@ export class UpdateChannelDTO {
   isActive?: boolean
 }
 
-export class QueryChannelsDTO {
-  @IsOptional()
-  @Transform(({ value }) => parseInt(value) || 1)
-  @Type(() => Number)
-  page?: number = 1
-
-  @IsOptional()
-  @Transform(({ value }) => parseInt(value) || 10)
-  @Type(() => Number)
-  limit?: number = 10
-
-  @IsString()
-  @IsOptional()
-  search?: string
-
+export class QueryChannelsDTO extends StandardPageDTO {
   @IsString()
   @IsOptional()
   epgId?: string
@@ -82,4 +69,7 @@ export class QueryChannelsDTO {
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
   isActive?: boolean
+
+  // 兼容旧的命名方式 - 继承自 StandardPageDTO
+  // page, limit, search 属性已经在父类中定义
 }

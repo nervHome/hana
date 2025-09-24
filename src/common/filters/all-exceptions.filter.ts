@@ -120,6 +120,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
     } else if (exception instanceof Error) {
       message = exception.message
+      console.log(exception)
+
       errorCode = 50000 // 内部服务器错误
     } else {
       message = 'Unknown error occurred'

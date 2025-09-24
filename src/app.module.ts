@@ -6,6 +6,7 @@ import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
 import { ChannelModule } from './channel/channel.module'
 import { CommonModule } from './common/common.module'
+import { EpgModule } from './epg/epg.module'
 import { UsersModule } from './users/users.module'
 
 @Module({
@@ -32,7 +33,7 @@ import { UsersModule } from './users/users.module'
                 options: {
                   colorize: true,
                   translateTime: 'yyyy-mm-dd HH:MM:ss',
-                  ignore: 'pid,hostname',
+                  ignore: 'pid,hostname,req',
                   singleLine: true,
                 },
               },
@@ -80,6 +81,7 @@ import { UsersModule } from './users/users.module'
     AuthModule,
     UsersModule,
     ChannelModule,
+    EpgModule,
   ],
   controllers: [AppController],
   providers: [AppService],
