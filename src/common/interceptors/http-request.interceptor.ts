@@ -60,6 +60,8 @@ export class HttpRequestInterceptor implements NestInterceptor {
         },
         error: (error) => {
           const duration = Date.now() - startTime
+          const isDevelopment = process.env.NODE_ENV !== 'production'
+
           this.logger.error(
             {
               method: request.method,
@@ -67,6 +69,11 @@ export class HttpRequestInterceptor implements NestInterceptor {
               duration,
               requestId: request.headers['x-request-id'],
               errorMessage: error.message,
+              ...(isDevelopment && {
+                errorStack: error.stack,
+                errorName: error.name,
+                errorCode: error.code,
+              }),
             },
             'HttpRequestInterceptor - Request Failed',
           )

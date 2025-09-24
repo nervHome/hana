@@ -7,7 +7,7 @@ import {
   HttpStatus,
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
-import type { Logger } from 'nestjs-pino'
+import { Logger } from 'nestjs-pino'
 import {
   BusinessException,
   ErrorShowType,
@@ -88,14 +88,23 @@ export class AllExceptionsFilter implements ExceptionFilter {
           exception instanceof BadRequestException &&
           Array.isArray(responseObj.message)
         ) {
+          // 提取具体的验证错误信息
+          const validationErrors = responseObj.message as string[]
+          const detailedMessage =
+            validationErrors.length > 0
+              ? `参数验证失败: ${validationErrors.join('; ')}`
+              : '参数验证失败'
+
           // 将验证错误转换为统一格式
           const validationResponse: ResponseStructure = {
             success: false,
             data: null,
             errorCode: 40001, // 使用参数验证错误码
-            message: '参数验证失败',
+            message: detailedMessage,
             showType: ErrorShowType.ERROR_MESSAGE,
           }
+
+          const isDevelopment = process.env.NODE_ENV !== 'production'
 
           // 记录错误日志
           this.logger.error(
@@ -108,6 +117,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
               errorCode: validationResponse.errorCode,
               validationErrors: responseObj.message,
               requestId: request.headers['x-request-id'],
+              ...(isDevelopment && {
+                stack: exception.stack,
+                exceptionName: exception.name,
+              }),
             },
             'ValidationExceptionFilter',
           )

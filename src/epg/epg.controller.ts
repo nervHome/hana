@@ -83,10 +83,7 @@ export class EpgController {
    * PUT /epgs/:id
    */
   @Put(':id')
-  async updateEpg(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateData: UpdateEpgDTO,
-  ) {
+  async updateEpg(@Param('id') id: string, @Body() updateData: UpdateEpgDTO) {
     return this.epgService.updateEpg(id, updateData)
   }
 

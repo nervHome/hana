@@ -20,7 +20,7 @@ export class CreateEpgDTO {
   @IsNotEmpty()
   name: string
 
-  @IsUrl({}, { message: 'xmlUrl 必须是有效的 URL' })
+  @IsString()
   @IsOptional()
   xmlUrl?: string
 
